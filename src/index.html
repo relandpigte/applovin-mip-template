@@ -202,148 +202,145 @@
   <!-- Code for Slider -->
   <script>
     document.querySelectorAll('.slider-wrapper').forEach(sliderContainer => {
-      const slider = sliderContainer.querySelector('.slider');
-      const slides = slider.children;
-      const prev = sliderContainer.querySelector('.prev');
-      const next = sliderContainer.querySelector('.next');
-      let index = 0;
+    const slider = sliderContainer.querySelector('.slider');
+    const slides = slider.children;
+    const prev = sliderContainer.querySelector('.prev');
+    const next = sliderContainer.querySelector('.next');
+    let index = 0;
 
-      function updateSlider() {
+    function updateSlider() {
         slider.style.transform = `translateX(-${index * 100}%)`;
-      }
+    }
 
-      function showNextSlide() {
+    function showNextSlide() {
         index = (index < slides.length - 1) ? index + 1 : 0;
         updateSlider();
-      }
+    }
 
-      function showPrevSlide() {
+    function showPrevSlide() {
         index = (index > 0) ? index - 1 : slides.length - 1;
         updateSlider();
-      }
+    }
 
-      // Auto-Rotate
-      let autoRotate = setInterval(showNextSlide, 3000);
+    // Auto-Rotate
+    let autoRotate = setInterval(showNextSlide, 3000);
 
-      function restartAutoRotate() {
+    function restartAutoRotate() {
         clearInterval(autoRotate);
         autoRotate = setInterval(showNextSlide, 3000);
-      }
+    }
 
-      // Button Event Listeners
-      prev.addEventListener('click', () => {
+    // Button Event Listeners
+    prev.addEventListener('click', () => {
         showPrevSlide();
         restartAutoRotate();
-      });
+    });
 
-      next.addEventListener('click', () => {
+    next.addEventListener('click', () => {
         showNextSlide();
         restartAutoRotate();
-      });
     });
-  </script>
+    });
+</script>
 
-  <!-- Code for auto scrolling when mraid is ready and for cta -->
-  <script>
+<!-- Code for auto scrolling when mraid is ready and for cta -->
+<script>
     (function () {
-      const mraid = window.mraid || {};
-      let isViewable = false;
-      let scrollInterval;
-      let isAutoScrolling = true;
+        const mraid = window.mraid || {};
+        let isViewable = false;
+        let scrollInterval;
+        let isAutoScrolling = true;
 
-      // Configuration Constants
-      const SCROLL_SPEED = 1; // Pixels per tick
-      const SCROLL_INTERVAL = 50; // Milliseconds
-      const FALLBACK_DELAY = 1000; // Delay for non-MRAID environments
-      const content = document.getElementById("content");
+        // Configuration Constants
+        const SCROLL_SPEED = 1; // Pixels per tick
+        const SCROLL_INTERVAL = 50; // Milliseconds
+        const FALLBACK_DELAY = 1000; // Delay for non-MRAID environments
+        const content = document.getElementById("content");
 
-      // Utility: Starts auto-scrolling
-      const startAutoScroll = () => {
-        if (!isAutoScrolling) return;
-        scrollInterval = setInterval(() => {
-          content.scrollTop += SCROLL_SPEED;
-          if (content.scrollHeight - content.scrollTop <= content.clientHeight) {
-            content.scrollTop = 0; // Reset scroll to top
-          }
-        }, SCROLL_INTERVAL);
-      };
+        // Utility: Starts auto-scrolling
+        const startAutoScroll = () => {
+            if (!isAutoScrolling) return;
+            scrollInterval = setInterval(() => {
+                content.scrollTop += SCROLL_SPEED;
+                if (content.scrollHeight - content.scrollTop <= content.clientHeight) {
+                    content.scrollTop = 0; // Reset scroll to top
+                }
+            }, SCROLL_INTERVAL);
+        };
 
-      // Utility: Stops auto-scrolling
-      const stopAutoScroll = () => {
-        isAutoScrolling = false;
-        clearInterval(scrollInterval);
-      };
+        // Utility: Stops auto-scrolling
+        const stopAutoScroll = () => {
+            isAutoScrolling = false;
+            clearInterval(scrollInterval);
+        };
 
-      // Utility: Handles click actions
-      const handleClickAction = () => {
-        if (isViewable && mraid.open && typeof mraid.open === "function") {
-          mraid.open();
-        } else {
-          window.open();
-        }
-      };
+        // Utility: Handles click actions
+        const handleClickAction = (e) => {
+          e.preventDefault();
+          mraid.open('');
+        };
 
-      // Add click event listeners to specified selectors
-      const addClickHandlers = (selectors) => {
-        selectors.forEach(selector => {
-          document.querySelectorAll(selector).forEach(element => {
-            element.addEventListener("click", (event) => {
-              event.preventDefault();
-              handleClickAction();
+        // Add click event listeners to specified selectors
+        const addClickHandlers = (selectors) => {
+            selectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(element => {
+                    element.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        handleClickAction(e);
+                    });
+                });
             });
-          });
-        });
-      };
+        };
 
-      // Initialize scrolling and content visibility
-      const initializeScrolling = () => {
-        content.style.display = "block"; // Ensure content is visible
-        if (isViewable && mraid.isViewable && typeof mraid.isViewable === "function" && mraid.isViewable()) {
-          startAutoScroll();
-        }
-      };
+        // Initialize scrolling and content visibility
+        const initializeScrolling = () => {
+            content.style.display = "block"; // Ensure content is visible
+            if (isViewable && mraid.isViewable && typeof mraid.isViewable === "function" && mraid.isViewable()) {
+                startAutoScroll();
+            }
+        };
 
-      // Initialize MRAID functionality
-      const initializeMraid = () => {
-        if (mraid && typeof mraid.getState === "function") {
-          const state = mraid.getState();
-          if (state === "loading") {
-            mraid.addEventListener("ready", () => {
-              isViewable = true;
-              initializeScrolling();
+        // Initialize MRAID functionality
+        const initializeMraid = () => {
+            if (mraid && typeof mraid.getState === "function") {
+                const state = mraid.getState();
+                if (state === "loading") {
+                    mraid.addEventListener("ready", () => {
+                        isViewable = true;
+                        initializeScrolling();
+                    });
+                } else {
+                    isViewable = true;
+                    initializeScrolling();
+                }
+            } else {
+                // Fallback for non-MRAID environments
+                setTimeout(initializeScrolling, FALLBACK_DELAY);
+            }
+        };
+
+        // Add user interaction event listeners to stop auto-scrolling
+        const addUserInteractionListeners = () => {
+            ["touchstart", "mousedown", "wheel"].forEach(eventType => {
+                content.addEventListener(eventType, stopAutoScroll, { passive: true });
             });
-          } else {
-            isViewable = true;
-            initializeScrolling();
-          }
+        };
+
+        // Initialization logic
+        const initialize = () => {
+            addClickHandlers([".cta"]);
+            addUserInteractionListeners();
+            initializeMraid();
+        };
+
+        // Start initialization when the DOM is ready
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initialize);
         } else {
-          // Fallback for non-MRAID environments
-          setTimeout(initializeScrolling, FALLBACK_DELAY);
+            initialize();
         }
-      };
-
-      // Add user interaction event listeners to stop auto-scrolling
-      const addUserInteractionListeners = () => {
-        ["touchstart", "mousedown", "wheel"].forEach(eventType => {
-          content.addEventListener(eventType, stopAutoScroll, { passive: true });
-        });
-      };
-
-      // Initialization logic
-      const initialize = () => {
-        addClickHandlers([".cta"]);
-        addUserInteractionListeners();
-        initializeMraid();
-      };
-
-      // Start initialization when the DOM is ready
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initialize);
-      } else {
-        initialize();
-      }
     })();
-  </script>
+</script>
 </body>
 
 </html>
